@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <base href="./">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MCQ Quiz App</title>
+  <style>
+    :root{
+      --bg:#f4f6fb; --card:#fff; --text:#0f172a; --muted:#475569;
+      --line:#e5e7eb; --shadow:0 10px 24px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:system-ui,Arial;color:var(--text)}
+    .container{max-width:980px;margin:0 auto;padding:18px}
+    header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+    h1{margin:0;font-size:28px;font-weight:1000}
+    .sub{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      box-shadow:var(--shadow); padding:16px; margin-top:14px;
+    }
+    .meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+    .q{margin:10px 0 0;font-size:18px;font-weight:900;line-height:1.35}
+    .opts{margin-top:12px;display:grid;gap:10px}
+    .opt{
+      display:flex;gap:10px;align-items:flex-start;
+      padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;
+    }
+    .opt input{margin-top:3px;transform:scale(1.2)}
+    .opt b{min-width:28px;display:inline-block}
+    .opt.selected{border-color:#111827;background:#e0f2fe}
+    .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-top:14px}
+    button{
+      border:1px solid var(--line);background:#111827;color:#fff;
+      padding:10px 12px;border-radius:14px;cursor:pointer;font-weight:900
+    }
+    button.secondary{background:#fff;color:#111827}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .result{
+      margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fafafa;
+    }
+    .good{border-color:#bbf7d0;background:#f0fdf4}
+    .bad{border-color:#fecaca;background:#fff1f2}
+    .explain{margin-top:8px;color:#334155;line-height:1.45}
+    .score{
+      font-weight:1000;
+      padding:8px 10px;border-radius:999px;background:#fff;border:1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>📝 MCQ Quiz App</h1>
+        <div class="sub">Tick (✓) the correct option and click Submit.</div>
+      </div>
+      <div class="score" id="scorePill">Score: 0 / 0</div>
+    </header>
+
+    <div class="card">
+      <div class="meta">
+        <div id="qCount">Question 1 of 1</div>
+        <div id="statusText">Select an option</div>
+      </div>
+
+      <div class="q" id="questionText"></div>
+      <div class="opts" id="optionsBox"></div>
+
+      <div class="row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="secondary" id="prevBtn">◀ Prev</button>
+          <button class="secondary" id="nextBtn">Next ▶</button>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="secondary" id="resetBtn">⟲ Reset</button>
+          <button id="submitBtn">✅ Submit</button>
+        </div>
+      </div>
+
+      <div id="resultBox" class="result" style="display:none;"></div>
+    </div>
+  </div>
+
+<script>
+/*
+  ✅ Questions (3 options each)
+  - We keep 4th option as blank placeholder to match the (a)-(d) UI.
+*/
+const QUESTIONS = [
+  {
+    question: "Mr Pavan Gupta is —",
+    options: ["at school", "at home", "at market", ""],
+    correctIndex: 1,
+    explanation: "Mr Pavan Gupta is at home."
+  },
+  {
+    question: "Mr Pavan Gupta is reading a —",
+    options: ["book", "newspaper", "letter", ""],
+    correctIndex: 1,
+    explanation: "Mr Pavan Gupta is reading a newspaper."
+  },
+  {
+    question: "Mrs Riya is having a cup of —",
+    options: ["milk", "tea", "juice", ""],
+    correctIndex: 1,
+    explanation: "Mrs Riya is having a cup of tea."
+  },
+  {
+    question: "Monty is doing his —",
+    options: ["playing", "homework", "sleeping", ""],
+    correctIndex: 1,
+    explanation: "Monty is doing his homework."
+  },
+  {
+    question: "Lucky is playing with a —",
+    options: ["ball", "doll", "puppy", ""],
+    correctIndex: 1,
+    explanation: "Lucky is playing with a doll."
+  }
+];
+
+let current = 0;
+const userAnswers = new Array(QUESTIONS.length).fill(null);
+const submitted = new Array(QUESTIONS.length).fill(false);
+
+const qCount = document.getElementById("qCount");
+const statusText = document.getElementById("statusText");
+const questionText = document.getElementById("questionText");
+const optionsBox = document.getElementById("optionsBox");
+const resultBox = document.getElementById("resultBox");
+const scorePill = document.getElementById("scorePill");
+
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const submitBtn = document.getElementById("submitBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+function render(){
+  const q = QUESTIONS[current];
+  qCount.textContent = `Question ${current+1} of ${QUESTIONS.length}`;
+  questionText.textContent = `${current+1}. ${q.question}`;
+  optionsBox.innerHTML = "";
+  resultBox.style.display = "none";
+  resultBox.className = "result";
+
+  const selected = userAnswers[current];
+  const isSubmitted = submitted[current];
+  const labels = ["(a)", "(b)", "(c)", "(d)"];
+
+  q.options.forEach((opt, idx) => {
+    if (!opt) return; // hide the blank 4th option
+
+    const row = document.createElement("label");
+    row.className = "opt" + (selected===idx ? " selected" : "");
+    row.innerHTML = `
+      <input type="radio" name="opt" ${selected===idx ? "checked" : ""} ${isSubmitted ? "disabled" : ""}>
+      <div><b>${labels[idx]}</b> ${opt}</div>
+    `;
+
+    row.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (isSubmitted) return;
+      userAnswers[current] = idx;
+      statusText.textContent = "Option selected";
+      render();
+    });
+
+    optionsBox.appendChild(row);
+  });
+
+  prevBtn.disabled = (current === 0);
+  nextBtn.disabled = (current === QUESTIONS.length - 1);
+
+  if (selected === null) statusText.textContent = "Select an option";
+  if (isSubmitted) statusText.textContent = "Submitted";
+
+  submitBtn.disabled = (selected === null || isSubmitted);
+
+  updateScorePill();
+}
+
+function showResult(){
+  const q = QUESTIONS[current];
+  const selected = userAnswers[current];
+  const correct = (selected === q.correctIndex);
+
+  resultBox.style.display = "block";
+  resultBox.classList.add(correct ? "good" : "bad");
+
+  const labels = ["(a)", "(b)", "(c)", "(d)"];
+  const correctText = `${labels[q.correctIndex]} ${q.options[q.correctIndex]}`;
+
+  resultBox.innerHTML = `
+    <div style="font-weight:1000;font-size:16px;">
+      ${correct ? "✅ Correct!" : "❌ Incorrect!"}
+    </div>
+    <div style="margin-top:6px;"><b>Correct Answer:</b> ${correctText}</div>
+    <div class="explain"><b>Explanation:</b> ${q.explanation}</div>
+  `;
+}
+
+function updateScorePill(){
+  let score = 0;
+  for (let i=0;i<QUESTIONS.length;i++){
+    if (submitted[i] && userAnswers[i] === QUESTIONS[i].correctIndex) score++;
+  }
+  const done = submitted.filter(Boolean).length;
+  scorePill.textContent = `Score: ${score} / ${QUESTIONS.length}  (Done: ${done})`;
+}
+
+submitBtn.addEventListener("click", () => {
+  submitted[current] = true;
+  showResult();
+  submitBtn.disabled = true;
+  updateScorePill();
+});
+
+prevBtn.addEventListener("click", () => {
+  current--;
+  render();
+});
+
+nextBtn.addEventListener("click", () => {
+  current++;
+  render();
+});
+
+resetBtn.addEventListener("click", () => {
+  for (let i=0;i<QUESTIONS.length;i++){
+    userAnswers[i] = null;
+    submitted[i] = false;
+  }
+  current = 0;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

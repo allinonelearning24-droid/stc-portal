@@ -1,0 +1,2063 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STC Publishing House | Leading in Education</title>
+
+  <!-- Test Paper libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f5f7ff;
+      --text:#0f172a;
+      --muted: rgba(15,23,42,.68);
+      --border: rgba(15,23,42,.12);
+
+      --accent:#1d4ed8;
+      --accent2:#2563eb;
+      --accent3:#7c3aed;
+
+      --surface:#ffffff;
+      --surface2:#f1f5ff;
+      --shadow: 0 18px 60px rgba(2,6,23,.10);
+
+      --container: 1140px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(37,99,235,.14), transparent 60%),
+        radial-gradient(1200px 600px at 90% 10%, rgba(124,58,237,.12), transparent 62%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      overflow-x:hidden;
+      padding-bottom: 110px; /* for floating auth bar */
+    }
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    .container{max-width:var(--container);margin:0 auto;padding:0 18px;}
+    section{scroll-margin-top:120px;}
+    iframe{width:100%; height: 420px; border:0;}
+    @media(max-width:700px){ iframe{height: 240px;} }
+
+    /* ================= TOPBAR ================= */
+    .topbar{
+      position:sticky; top:0; z-index:100;
+      background: rgba(255,255,255,.86);
+      backdrop-filter: blur(14px);
+      border-bottom:1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(2,6,23,.06);
+    }
+    .topbar-inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 0; gap:16px;
+    }
+
+    .brand{display:flex; align-items:center; gap:12px; min-width:240px;}
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      border:1px solid var(--border);
+      overflow:hidden; background: #fff;
+      display:grid; place-items:center;
+      font-weight:950;
+      box-shadow: 0 8px 24px rgba(2,6,23,.08);
+    }
+    .logo img{width:100%;height:100%;object-fit:cover}
+    .brandtext .name{font-weight:950; letter-spacing:.2px; font-size:14px; color: var(--text);}
+    .brandtext .tag{
+      font-size:10px; letter-spacing:1.6px;
+      color: rgba(29,78,216,.95);
+      font-weight:900; margin-top:3px; text-transform:uppercase;
+    }
+
+    .navlinks{
+      display:flex; align-items:center; gap:16px;
+      overflow-x:auto; white-space:nowrap;
+      -webkit-overflow-scrolling:touch;
+      padding-bottom:6px;
+      max-width: 62vw;
+    }
+    .navlinks a{
+      font-size:12.5px; font-weight:900;
+      color: rgba(15,23,42,.68);
+      padding: 8px 4px;
+      border-bottom: 2px solid transparent;
+      transition:.2s;
+      cursor:pointer;
+    }
+    .navlinks a:hover{color: rgba(15,23,42,.92);}
+    .navlinks a.active{color: rgba(15,23,42,.95); border-bottom-color: rgba(29,78,216,.95);}
+
+    .hamburger{
+      display:none;
+      width:44px;height:44px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 10px 25px rgba(2,6,23,.08);
+      cursor:pointer;
+      font-weight:950;
+      font-size:18px;
+      line-height:1;
+      color: rgba(15,23,42,.92);
+    }
+    @media (max-width: 980px){
+      .navlinks{display:none;}
+      .brand{min-width:auto;}
+      .hamburger{display:inline-grid; place-items:center;}
+    }
+
+    .drawerOverlay{
+      position:fixed; inset:0;
+      background: rgba(2,6,23,.45);
+      backdrop-filter: blur(6px);
+      display:none;
+      z-index: 999;
+    }
+    .drawer{
+      position:fixed;
+      top:0; right:-320px;
+      width: 320px;
+      height: 100%;
+      background: rgba(255,255,255,.96);
+      border-left:1px solid var(--border);
+      box-shadow: -20px 0 60px rgba(2,6,23,.18);
+      z-index: 1000;
+      transition: right .25s ease;
+      display:flex;
+      flex-direction:column;
+    }
+    .drawerHeader{
+      padding: 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-weight:950;
+    }
+    .drawerClose{
+      width:38px;height:38px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(241,245,255,.70);
+      cursor:pointer;
+      font-weight:950;
+    }
+    .drawerList{
+      padding: 10px;
+      overflow:auto;
+    }
+    .drawerItem{
+      padding: 12px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight:900;
+      color: rgba(15,23,42,.92);
+      border:1px solid transparent;
+    }
+    .drawerItem:hover{
+      background: rgba(241,245,255,.90);
+      border-color: rgba(15,23,42,.10);
+    }
+    .drawerItem.active{
+      background: rgba(29,78,216,.10);
+      border-color: rgba(29,78,216,.18);
+    }
+    .drawerDivider{
+      height:1px; background: rgba(15,23,42,.10);
+      margin: 10px 4px;
+    }
+    .drawerOverlay.open{display:block;}
+    .drawer.open{right:0;}
+
+    /* ================= HERO ================= */
+    .hero{padding: 26px 0 8px;}
+    .hero h1{
+      font-size: clamp(28px, 3.6vw, 52px);
+      letter-spacing:-0.03em;
+      line-height:1.05;
+      font-weight:950;
+      color: rgba(15,23,42,.95);
+    }
+
+    .full-bleed{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);}
+    .slider{padding: 10px 0 44px; border-bottom:1px solid var(--border);}
+    .slider-shell{
+      max-width: 1240px;
+      margin: 0 auto;
+      position:relative;
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+    .slides{display:flex;transition: transform .65s cubic-bezier(.2,.9,.2,1);position:relative;}
+    .slide{min-width:100%;padding: 18px;}
+    .collageCard{border-radius: 24px;border:1px solid var(--border);background: rgba(241,245,255,.55);padding: 18px;overflow:hidden;}
+    .collageTop{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom: 14px;}
+    .collageTitle{font-weight:950;letter-spacing:-.02em;font-size: clamp(18px, 2vw, 26px);color: rgba(15,23,42,.92);}
+    .collageSub{color: rgba(15,23,42,.62);font-weight:850;font-size: 13px;margin-top:6px;line-height:1.6;max-width: 60ch;}
+    .collageGrid{display:grid;grid-template-columns: repeat(4, 1fr);gap: 12px;}
+    .collageImg{border-radius: 18px;border: 1px solid rgba(15,23,42,.12);overflow:hidden;background:#fff;box-shadow: 0 14px 30px rgba(2,6,23,.08);aspect-ratio: 1/1;}
+    .collageImg img{width:100%; height:100%;object-fit: cover;}
+    .dots{display:flex;gap:10px;justify-content:center;padding: 0 0 16px;}
+    .dot{width:10px;height:10px;border-radius:50%;border:1px solid rgba(15,23,42,.18);background: rgba(15,23,42,.06);cursor:pointer;transition:.2s;}
+    .dot.active{background: rgba(29,78,216,.90); border-color: rgba(29,78,216,.90);}
+    .slider-arrow{display:none !important;}
+    @media(max-width:980px){.slide{padding: 14px;} .collageGrid{grid-template-columns: repeat(2, 1fr);} }
+
+    .hidden-section{display:none; padding: 36px 0 70px;}
+    .panel{background: var(--surface);border:1px solid var(--border);border-radius: 22px;padding: 18px;box-shadow: var(--shadow);max-width: var(--container);margin: 0 auto;}
+    .panel-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+    .panel-title{font-weight:950; font-size:18px; color: rgba(15,23,42,.95);}
+    .panel-note{margin-top:6px; color: rgba(15,23,42,.62); font-size:14px; line-height:1.75}
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:10px;
+      padding: 11px 14px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(241,245,255,.65);
+      color: rgba(15,23,42,.92);
+      font-weight: 900;
+      font-size: 12.5px;
+      letter-spacing: .2px;
+      transition: .2s;
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn.primary{background: linear-gradient(90deg, rgba(29,78,216,.95), rgba(124,58,237,.80));color:#fff;border-color: rgba(29,78,216,.18);}
+    .btn.ghost{background: rgba(241,245,255,.55);}
+    .btn.small{padding:9px 12px; font-size:12px;}
+    .btn:hover{border-color: rgba(15,23,42,.22); transform: translateY(-1px);}
+
+    .panel-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;}
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(15,23,42,.92);
+      border:1px solid rgba(15,23,42,.18);
+      backdrop-filter: blur(18px);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-weight: 950;
+      font-size: 12.5px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.20);
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s;
+      z-index: 9999;
+      max-width: calc(100vw - 32px);
+      text-align:center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast.show{opacity: 1;}
+
+    /* Digital dropdowns */
+    .dc-wrap{margin-top:14px;}
+    .dc-grid{display:grid;grid-template-columns: 1fr 1fr;gap: 10px;align-items:center;}
+    .dc-grid-1{display:grid;grid-template-columns: 1fr;gap: 10px;margin-top: 10px;}
+    .dc-select{
+      height: 50px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.92);
+      color: rgba(15,23,42,.92);
+      font-weight: 950;
+      font-size: 13.5px;
+      outline: none;
+      cursor:pointer;
+      width:100%;
+      box-shadow: 0 10px 25px rgba(2,6,23,.06);
+    }
+
+    .pillbtn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(241,245,255,.70);
+      color: rgba(15,23,42,.92);
+      font-weight: 950;
+      font-size: 12px;
+      cursor:pointer;
+      transition:.2s;
+      white-space:nowrap;
+    }
+    .pillbtn.primary{background: linear-gradient(90deg, rgba(29,78,216,.95), rgba(124,58,237,.80));color:#fff;}
+    .pillbtn:hover{transform: translateY(-1px); border-color: rgba(15,23,42,.22);}
+    .pillbtn[disabled]{opacity:.55; cursor:not-allowed; transform:none;}
+    .pillbtn .dot{width:8px;height:8px;border-radius:99px; background: rgba(15,23,42,.35);}
+    .pillbtn.primary .dot{background: rgba(255,255,255,.75);}
+
+    .dc-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top: 10px;justify-content:flex-end;}
+    @media (max-width: 640px){
+      .dc-grid{grid-template-columns: 1fr;}
+      .dc-actions{justify-content:flex-start;}
+      .dc-select{height: 48px;}
+    }
+
+    /* Activities dropdown */
+    .act-dd{position:relative;}
+    .act-menu{
+      position:absolute;
+      right:0;
+      top: calc(100% + 8px);
+      min-width: 240px;
+      border-radius: 16px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 24px 90px rgba(2,6,23,.18);
+      overflow:hidden;
+      display:none;
+      z-index: 500;
+    }
+    .act-dd.open .act-menu{display:block;}
+    .act-item{
+      padding: 12px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      cursor:pointer;
+      font-weight: 950;
+      font-size: 12.5px;
+      color: rgba(15,23,42,.92);
+      background: transparent;
+      transition: .15s;
+    }
+    .act-item:hover{background: rgba(241,245,255,.90);}
+    .act-sub{font-size: 11.5px; color: rgba(15,23,42,.55); font-weight: 850;}
+    .act-line{height:1px;background: rgba(15,23,42,.12);}
+
+    #videosWrap{display:none; margin-top:14px;}
+    .iframeWrap{margin-top:10px;border-radius:16px;overflow:hidden;border:1px solid var(--border);background: rgba(0,0,0,.05);}
+
+    /* Floating auth */
+    .auth-fab{
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 99999;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(15,23,42,.14);
+      box-shadow: 0 18px 60px rgba(2,6,23,.18);
+      backdrop-filter: blur(14px);
+    }
+
+    /* Test paper styles (kept as-is from your file, minimal) */
+    .tp-shell{margin-top: 14px;border-radius: 22px;border:1px solid var(--border);background: rgba(241,245,255,.55);overflow:hidden;}
+    .tp-toolbar{position: sticky;top: 0;z-index: 50;background: rgba(255,255,255,.92);backdrop-filter: blur(16px);border-bottom: 1px solid var(--border);padding: 14px;display:flex;flex-direction:column;gap:10px;}
+    .tp-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;}
+    .tp-left{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+    .tp-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end;}
+    .tp-select, .tp-input{height: 42px;padding: 10px 12px;border-radius: 12px;border:1px solid var(--border);background: rgba(255,255,255,.92);color: rgba(15,23,42,.92);font-weight: 900;font-size: 12.5px;outline: none;}
+    .tp-select{cursor:pointer;}
+    .tp-btn{height: 40px;padding: 0 16px;border-radius: 12px;border: 1px solid rgba(15,23,42,.14);background: rgba(255,255,255,.92);color: rgba(15,23,42,.88);font-weight: 900;font-size: 12px;letter-spacing: .25px;cursor: pointer;transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, filter .15s ease;white-space: nowrap;box-shadow: 0 8px 18px rgba(2,6,23,.06);}
+    .tp-btn:hover{transform: translateY(-1px);border-color: rgba(15,23,42,.22);box-shadow: 0 12px 26px rgba(2,6,23,.10);}
+    .tp-btn.primary{color:#fff;border-color: rgba(29,78,216,.22);background: linear-gradient(90deg, rgba(29,78,216,.92), rgba(37,99,235,.86));}
+    .tp-btn.red{color:#fff;border-color: rgba(239,68,68,.22);background: linear-gradient(90deg, rgba(239,68,68,.92), rgba(248,113,113,.86));}
+    .tp-btn.blue{color:#fff;border-color: rgba(37,99,235,.22);background: linear-gradient(90deg, rgba(37,99,235,.92), rgba(99,102,241,.86));}
+    .tp-btn.gray{border-color: rgba(15,23,42,.14);background: rgba(148,163,184,.16);color: rgba(15,23,42,.86);}
+    #testpaper .container{max-width:1600px;}
+    .tp-grid{display:grid;grid-template-columns: 240px 300px minmax(0, 1fr);gap: 14px;padding: 14px;align-items: start;}
+    .tp-col{border-radius: 18px;border:1px solid var(--border);background: rgba(255,255,255,.80);overflow:hidden;min-height: 520px;}
+    .tp-col-head{padding: 12px 12px;border-bottom:1px solid rgba(15,23,42,.10);font-weight: 950;color: rgba(15,23,42,.92);display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .tp-col-body{padding: 12px;max-height: 640px;overflow:auto;}
+    .tp-item{background: rgba(241,245,255,.70);border:1px solid var(--border);border-left: 4px solid rgba(124,58,237,.75);border-radius: 14px;padding: 10px 10px;margin-bottom: 10px;cursor:pointer;transition:.15s;}
+    .tp-item:hover{background: rgba(241,245,255,.92);}
+    .tp-item b{font-size:12px;}
+    .tp-item .sub{color: rgba(15,23,42,.60);font-size:11.5px;margin-top:4px;line-height:1.5;}
+    .tp-paperWrap{background: rgba(241,245,255,.55);border-radius: 18px;border:1px solid var(--border);overflow:auto;max-height: 720px;padding: 14px;}
+    .tp-paper{background:#fff;width: 210mm;min-height: 297mm;padding: 18mm;color:#000;border-radius: 12px;box-shadow: 0 0 30px rgba(0,0,0,.15);margin: 0 auto;}
+    .tp-paper-header{text-align:center;border: 2.5px solid #000;padding: 14px;margin-bottom: 16px;}
+    .tp-paper-header h1{margin:0;font-size:22px;}
+    .tp-paper-header p{margin:6px 0 0;font-weight:900;font-size:14px;}
+    .tp-meta-line{display:flex;justify-content:space-between;border-top:2px solid #000;margin-top:10px;padding-top:10px;font-weight:900;font-size:12.5px;gap:10px;flex-wrap:wrap;}
+    .tp-sec-head{background:#f3f4f6;padding: 10px 12px;font-weight: 950;border: 1.5px solid #000;margin: 18px 0 10px 0;text-transform: uppercase;border-radius: 10px;page-break-after: avoid;page-break-inside: avoid;}
+    .tp-q{position: relative;padding: 10px 0;border-bottom: 1px solid #eee;font-size: 14px;page-break-inside: avoid !important;}
+    .tp-del{position:absolute;right: -6px;top: 8px;color:#ef4444;font-weight: 950;cursor:pointer;user-select:none;}
+    .tp-marks-input{width: 48px;border: none;border-bottom: 1px dashed #000;background: transparent;font-weight: 950;text-align:center;outline:none;-moz-appearance: textfield;}
+    .tp-marks-input::-webkit-outer-spin-button,.tp-marks-input::-webkit-inner-spin-button{-webkit-appearance: none;margin: 0;}
+    .tp-inline-box{display:inline-block;width: 15px;height: 15px;border: 1.5px solid #000;margin-left: 6px;vertical-align: middle;}
+    .tp-opts{margin: 8px 0 0 18px;display:grid;grid-template-columns: 1fr 1fr;gap: 8px 16px;font-size: 13px;page-break-inside: avoid;}
+    .tp-ans{display:none;color:#059669;font-weight:900;margin-top: 6px;font-size: 12.5px;}
+    .teacher-mode .tp-ans{display:block;}
+    @media(max-width: 1100px){.tp-grid{grid-template-columns: 1fr;} .tp-col{min-height:auto;} .tp-paperWrap{max-height: none;} .tp-paper{width: 100%; padding: 10mm;}}
+    footer{border-top:1px solid var(--border);padding: 26px 0;color: rgba(15,23,42,.55);font-size: 13px;}
+  </style>
+</head>
+
+<body>
+  <div class="toast" id="toast">Saved</div>
+
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo">
+            <img id="brandLogo" src="assets/logo.png" alt="STC Logo"
+                 onerror="this.style.display='none'; this.parentElement.textContent='STC';">
+          </div>
+          <div class="brandtext">
+            <div class="name" id="brandName">STC Publishing House</div>
+            <div class="tag">Leading In Education</div>
+          </div>
+        </div>
+
+        <nav class="navlinks" aria-label="Primary navigation">
+          <a data-tab="home" class="active">Home</a>
+          <a data-tab="digital">Digital Content</a>
+          <a data-tab="answerkey">Answer Key</a>
+          <a data-tab="trm">TRM</a>
+          <a data-tab="worksheet">Worksheet</a>
+          <a data-tab="testpaper">Test Paper</a>
+          <a data-tab="ukg">UKG</a>
+          <a data-tab="lkg">LKG</a>
+          <a data-tab="nursery">Nursery</a>
+          <a data-tab="contact">Contact</a>
+        </nav>
+
+        <button class="hamburger" id="hamBtn" type="button" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawerOverlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="drawer" aria-label="Mobile menu">
+    <div class="drawerHeader">
+      <div>Menu</div>
+      <button class="drawerClose" id="drawerClose" type="button">✕</button>
+    </div>
+    <div class="drawerList" id="drawerList"></div>
+  </aside>
+
+  <section class="hero">
+    <div class="container">
+      <h1 id="heroTitle">STC Publishing House</h1>
+    </div>
+  </section>
+
+  <section class="slider full-bleed" aria-label="Highlights slider">
+    <div class="slider-shell">
+      <div class="slides" id="slides">
+        <div class="slide">
+          <div class="collageCard">
+            <div class="collageTop">
+              <div>
+                <div class="collageTitle">Curriculum-aligned, child-friendly learning content for (Classes 1–12)</div>
+                <div class="collageSub">Textbooks, worksheets, picture books & teacher-ready resource packs.</div>
+              </div>
+            </div>
+            <div class="collageGrid">
+              <div class="collageImg"><img src="assets/Hindi-ReaderBook-1.png" alt="Cover 1"></div>
+              <div class="collageImg"><img src="assets/Hindi-ReaderBook-2.png" alt="Cover 2"></div>
+              <div class="collageImg"><img src="assets/Hindi-ReaderBook-3.png" alt="Cover 3"></div>
+              <div class="collageImg"><img src="assets/Book-image.png" alt="Cover 4"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide">
+          <div class="collageCard">
+            <div class="collageTop">
+              <div>
+                <div class="collageTitle">Print + e-books + custom publishing—built on NCERT/ICSE guidelines.</div>
+                <div class="collageSub">Making learning simple, engaging, and inclusive for every child.</div>
+              </div>
+            </div>
+            <div class="collageGrid">
+              <div class="collageImg"><img src="assets/Hindi-ReaderBook-3.png" alt="Cover A"></div>
+              <div class="collageImg"><img src="assets/Hindi-ReaderBook-2.png" alt="Cover B"></div>
+              <div class="collageImg"><img src="assets/Hindi-ReaderBook-1.png" alt="Cover C"></div>
+              <div class="collageImg"><img src="assets/Book-image.png" alt="Cover D"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dots" id="dots" aria-label="Slider dots"></div>
+    </div>
+  </section>
+
+  <!-- DIGITAL -->
+  <section id="digital" class="hidden-section">
+    <div class="container">
+      <div class="panel">
+        <div class="panel-top">
+          <div>
+            <div class="panel-title">Digital Content</div>
+            <div class="panel-note">First select Subject → Class → Chapter.</div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn ghost" onclick="hideAll()">Close</button>
+          </div>
+        </div>
+
+        <div class="dc-wrap">
+          <div class="dc-grid">
+            <select id="dcSubject" class="dc-select" aria-label="Subject"></select>
+            <select id="dcClass" class="dc-select" aria-label="Class"></select>
+          </div>
+
+          <div class="dc-grid-1">
+            <select id="dcChapter" class="dc-select" aria-label="Chapter"></select>
+          </div>
+
+          <div class="dc-actions">
+            <button class="pillbtn primary" type="button" id="dcOpenBtn">
+              <span class="dot"></span> Open
+            </button>
+
+            <div class="act-dd" id="dcActWrap">
+              <button class="pillbtn" type="button" id="dcActBtn">
+                <span class="dot"></span> Activities
+              </button>
+              <div class="act-menu" id="dcActMenu"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="videosWrap" style="display:none;">
+          <div class="panel-top" style="margin-top:14px;">
+            <div>
+              <div id="videoListTitle" class="panel-title" style="font-size:16px;">Videos</div>
+              <div class="panel-note">Play video here. If embed error, Open on YouTube.</div>
+            </div>
+            <div class="panel-actions">
+              <button class="btn ghost btn.small" id="chapBackBtn">Back</button>
+            </div>
+          </div>
+
+          <div class="list" id="videoList"></div>
+
+          <div id="videoBox">
+            <div class="panel-top" style="margin-top:14px;">
+              <div>
+                <div id="videoTitle" class="panel-title" style="font-size:16px;">Video</div>
+                <div class="panel-note">Agar embed error aaye to “Open on YouTube” use karein.</div>
+              </div>
+              <div class="panel-actions">
+                <a class="btn primary btn.small" id="openOnYt" href="#" target="_blank" rel="noopener">Open on YouTube</a>
+                <button class="btn ghost btn.small" type="button" onclick="stopVideo()">Hide Video</button>
+              </div>
+            </div>
+            <div class="iframeWrap">
+              <iframe id="ytFrame" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ANSWER KEY -->
+  <section id="answerkey" class="hidden-section">
+    <div class="container">
+      <div class="panel">
+        <div class="panel-top">
+          <div>
+            <div class="panel-title">Answer Key</div>
+            <div class="panel-note">Select Subject → Class → Open.</div>
+          </div>
+
+          <div class="panel-actions">
+            <button class="btn primary small" type="button" id="akOpenBtn">Open</button>
+            <button class="btn ghost" onclick="hideAll()">Close</button>
+          </div>
+        </div>
+
+        <div class="dc-wrap">
+          <div class="dc-grid">
+            <select id="akSubject" class="dc-select" aria-label="Subject"></select>
+            <select id="akClass" class="dc-select" aria-label="Class"></select>
+          </div>
+        </div>
+
+        <div class="dc-grid-1">
+          <select id="akBook" class="dc-select" aria-label="Book"></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRM -->
+  <section id="trm" class="hidden-section">
+    <div class="container">
+      <div class="panel">
+        <div class="panel-top">
+          <div>
+            <div class="panel-title">TRM</div>
+            <div class="panel-note">Select Subject → Class → Open.</div>
+          </div>
+
+          <div class="panel-actions">
+            <button class="btn primary small" type="button" id="trmOpenBtn">Open</button>
+            <button class="btn ghost" onclick="hideAll()">Close</button>
+          </div>
+        </div>
+
+        <div class="dc-wrap">
+          <div class="dc-grid">
+            <select id="trmSubject" class="dc-select" aria-label="Subject"></select>
+            <select id="trmClass" class="dc-select" aria-label="Class"></select>
+          </div>
+        </div>
+
+        <div class="dc-grid-1">
+          <select id="trmBook" class="dc-select" aria-label="Book"></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKSHEET -->
+  <section id="worksheet" class="hidden-section">
+    <div class="container">
+      <div class="panel">
+        <div class="panel-top">
+          <div>
+            <div class="panel-title">Worksheet</div>
+            <div class="panel-note">Select Subject → Class → Open.</div>
+          </div>
+
+          <div class="panel-actions">
+            <button class="btn primary small" type="button" id="wsOpenBtn">Open</button>
+            <button class="btn ghost" onclick="hideAll()">Close</button>
+          </div>
+        </div>
+
+        <div class="dc-wrap">
+          <div class="dc-grid">
+            <select id="wsSubject" class="dc-select" aria-label="Subject"></select>
+            <select id="wsClass" class="dc-select" aria-label="Class"></select>
+          </div>
+        </div>
+
+        <div class="dc-grid-1">
+          <select id="wsBook" class="dc-select" aria-label="Book"></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEST PAPER -->
+  <section id="testpaper" class="hidden-section">
+    <div class="container">
+      <div class="panel">
+        <div class="panel-top">
+          <div>
+            <div class="panel-title">Test Paper</div>
+            <div class="panel-note">Subject-wise → Class-wise → Chapter-wise question bank.</div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn ghost" onclick="hideAll()">Close</button>
+          </div>
+        </div>
+
+        <div class="tp-shell">
+          <div class="tp-toolbar">
+            <div class="tp-row">
+              <div class="tp-left">
+                <select id="tpClassSel" class="tp-select"></select>
+                <select id="tpSubSel" class="tp-select"></select>
+              </div>
+              <div class="tp-right">
+                <button id="tpTeacherBtn" class="tp-btn" onclick="tpToggleTeacher()">TEACHER MODE: OFF</button>
+              </div>
+            </div>
+
+
+            <div class="tp-row">
+              <div class="tp-left">
+                <button id="tpFullPaperBtn" class="tp-btn blue" type="button">
+                  OPEN FULL BOOK TEST PAPER (DOCX/PDF)
+                </button>
+              </div>
+              <div class="tp-right" style="font-size:12px;color:rgba(15,23,42,.62);font-weight:900;">
+                (Teacher/Admin only)
+              </div>
+            </div>
+
+            <div class="tp-row">
+              <div class="tp-left">
+                <select id="tpPreset" class="tp-select">
+                  <option value="">PRESETS</option>
+                  <option value="1-4">TERM 1 (1-4)</option>
+                  <option value="5-8">TERM 2 (5-8)</option>
+                  <option value="1-11">FULL EXAM</option>
+                </select>
+                <input id="tpRange" class="tp-input" placeholder="Chapter Range e.g. 1-1" style="width:180px" />
+              </div>
+              <div class="tp-right">
+                <button class="tp-btn primary" onclick="tpGenerateFromRange()">GENERATE</button>
+              </div>
+            </div>
+
+            <div class="tp-row">
+              <div class="tp-right" style="width:100%; justify-content:flex-end;">
+                <button id="tpPdfBtn" class="tp-btn red" onclick="tpSavePDF()">PDF</button>
+                <button class="tp-btn blue" onclick="tpSaveWord()">WORD</button>
+                <button class="tp-btn gray" onclick="tpClear()">CLEAR</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tp-grid">
+            <div class="tp-col">
+              <div class="tp-col-head">📁 Chapters</div>
+              <div class="tp-col-body" id="tpChapters"></div>
+            </div>
+
+            <div class="tp-col">
+              <div class="tp-col-head" id="tpBankTitle">Pick Questions</div>
+              <div class="tp-col-body" id="tpBank"></div>
+            </div>
+
+            <div class="tp-paperWrap">
+              <div class="tp-paper" id="tpPaper">
+                <div class="tp-paper-header">
+                  <h1 contenteditable="true" id="tpSchoolName">SCHOOL</h1>
+                  <p contenteditable="true">ANNUAL EXAMINATION 2025-26</p>
+                  <div class="tp-meta-line">
+                    <span>Subject: <span id="tpPaperSubject" contenteditable="true">General Knowledge</span></span>
+                    <span>Time: <span contenteditable="true">2 Hours</span></span>
+                    <span>Max Marks: <span id="tpTotal">0</span></span>
+                  </div>
+                </div>
+                <div id="tpPaperBody"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- UKG/LKG/NURSERY -->
+  <section id="ukg" class="hidden-section"><div class="container"><div class="panel"><div class="panel-top"><div><div class="panel-title">UKG</div><div class="panel-note">Videos / Activity / Worksheet</div></div><div class="panel-actions"><button class="btn ghost" onclick="hideAll()">Close</button></div></div><div class="panel-note" style="margin-top:14px;">Add links via Excel (type: video/activity/worksheet, subject: UKG)</div></div></div></section>
+  <section id="lkg" class="hidden-section"><div class="container"><div class="panel"><div class="panel-top"><div><div class="panel-title">LKG</div><div class="panel-note">Videos / Activity / Worksheet</div></div><div class="panel-actions"><button class="btn ghost" onclick="hideAll()">Close</button></div></div><div class="panel-note" style="margin-top:14px;">Add links via Excel (type: video/activity/worksheet, subject: LKG)</div></div></div></section>
+  <section id="nursery" class="hidden-section"><div class="container"><div class="panel"><div class="panel-top"><div><div class="panel-title">Nursery</div><div class="panel-note">Videos / Activity / Worksheet</div></div><div class="panel-actions"><button class="btn ghost" onclick="hideAll()">Close</button></div></div><div class="panel-note" style="margin-top:14px;">Add links via Excel (type: video/activity/worksheet, subject: Nursery)</div></div></div></section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="hidden-section">
+    <div class="container">
+      <div class="panel">
+        <div class="panel-top">
+          <div>
+            <div class="panel-title">Contact</div>
+            <div class="panel-note">For inquiries and support, please contact us.</div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn ghost" onclick="hideAll()">Close</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px;background: rgba(241,245,255,.75);border:1px solid var(--border);border-radius: 20px;padding: 16px;">
+          <h4 style="font-size:16px;font-weight:950;margin-bottom:10px;">Business Details</h4>
+          <p style="color:var(--muted);font-size:14px;line-height:1.9">
+            <b style="color:var(--text)">STC Publishing House</b><br/>
+            Email: <a href="mailto:stcpublishinghouse@gmail.com" style="color:rgba(29,78,216,.95);font-weight:850">stcpublishinghouse@gmail.com</a><br/>
+            Phone: <a href="tel:+911204356124" style="color:rgba(124,58,237,.9);font-weight:850">0120 435 6124</a><br/>
+            Address: B-21 Sector-57, Noida, U.P. (India) 201301
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">© <span id="year"></span> STC Publishing House • All Rights Reserved</div>
+  </footer>
+
+  <script>
+    // ===================== UTIL =====================
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const toastEl = document.getElementById('toast');
+    let toastTimer = null;
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 1600);
+    }
+
+    // Persistent deviceId (per browser/device)
+    function getDeviceId(){
+      let d = localStorage.getItem("stc_device_id");
+      if(d && d.length >= 10) return d;
+      // simple UUID
+      d = "dev_" + ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+      );
+      localStorage.setItem("stc_device_id", d);
+      return d;
+    }
+
+    // ===================== SESSION + AUTH FETCH =====================
+    let SESSION = null;
+
+    function getSession(){
+      try { return JSON.parse(localStorage.getItem("stc_session") || "null"); }
+      catch(e){ return null; }
+    }
+    function setSession(data){
+      SESSION = data || null;
+      localStorage.setItem("stc_session", JSON.stringify(SESSION));
+    }
+    function clearSession(){
+      SESSION = null;
+      localStorage.removeItem("stc_session");
+    }
+
+    async function refreshAccessToken(){
+      const r = await fetch("/api/auth/refresh", { method: "POST", credentials: "include" });
+      const data = await r.json().catch(()=> ({}));
+      if(!r.ok || !data.ok) throw new Error(data.message || "refresh failed");
+      const sess = getSession() || {};
+      sess.token = data.token;
+      setSession(sess);
+      return data.token;
+    }
+
+    async function apiFetch(url, opts){
+      opts = opts || {};
+      opts.credentials = "include"; // so refresh cookie works
+      opts.headers = opts.headers || {};
+      const sess = getSession();
+      if(sess?.token){
+        opts.headers["Authorization"] = "Bearer " + sess.token;
+      }
+
+      let r = await fetch(url, opts);
+      if(r.status === 401 && sess?.token){
+        // try refresh then retry once
+        try{
+          await refreshAccessToken();
+          const sess2 = getSession();
+          opts.headers["Authorization"] = "Bearer " + (sess2?.token || "");
+          r = await fetch(url, opts);
+        }catch(e){
+          // refresh failed: clear session
+          clearSession();
+        }
+      }
+      return r;
+    }
+
+    // ===================== SERVER CONTENT STORE =====================
+    let CONTENT_ITEMS = []; // from /api/content/bootstrap
+    function uniq(arr){ return Array.from(new Set(arr)).filter(Boolean); }
+
+    async function loadBootstrap(){
+      const r = await apiFetch("/api/content/bootstrap", { method:"GET" });
+      const data = await r.json().catch(()=> ({}));
+      if(!r.ok || !data.ok){
+        CONTENT_ITEMS = [];
+        return;
+      }
+      CONTENT_ITEMS = Array.isArray(data.items) ? data.items : [];
+
+      // Branding
+      if(data.school){
+        const nm = data.school.name || "STC Publishing House";
+        document.getElementById("brandName").textContent = nm;
+        document.getElementById("heroTitle").textContent = nm;
+        document.getElementById("tpSchoolName").textContent = nm;
+        if(data.school.logoUrl){
+          document.getElementById("brandLogo").src = data.school.logoUrl;
+        }
+      }
+    }
+
+    // ===================== SLIDER =====================
+    const slides = document.getElementById('slides');
+    const total = slides ? slides.children.length : 0;
+    const dotsWrap = document.getElementById('dots');
+    let idx = 0, timer = null;
+
+    function buildDots(){
+      if(!dotsWrap || !total) return;
+      dotsWrap.innerHTML = '';
+      for(let i=0;i<total;i++){
+        const d = document.createElement('div');
+        d.className = 'dot' + (i===0 ? ' active' : '');
+        d.addEventListener('click', ()=>go(i,true));
+        dotsWrap.appendChild(d);
+      }
+    }
+    function setDots(){
+      if(!dotsWrap) return;
+      const dots = dotsWrap.querySelectorAll('.dot');
+      dots.forEach((d,i)=> d.classList.toggle('active', i===idx));
+    }
+    function go(i, user=false){
+      if(!slides || !total) return;
+      idx = (i + total) % total;
+      slides.style.transform = `translateX(-${idx*100}%)`;
+      setDots();
+      if(user) restart();
+    }
+    function next(){ go(idx+1); }
+    function start(){ if(!total) return; timer=setInterval(next, 5200); }
+    function restart(){ clearInterval(timer); start(); }
+    buildDots(); start();
+
+    (function(){
+      const track = document.getElementById('slides');
+      if(!track) return;
+      let startX = 0, dx = 0;
+      track.addEventListener('touchstart', (e)=>{
+        if(!e.touches || !e.touches.length) return;
+        startX = e.touches[0].clientX; dx = 0;
+      }, {passive:true});
+      track.addEventListener('touchmove', (e)=>{
+        if(!e.touches || !e.touches.length) return;
+        dx = e.touches[0].clientX - startX;
+      }, {passive:true});
+      track.addEventListener('touchend', ()=>{
+        if(Math.abs(dx) >= 50){
+          if(dx < 0) next();
+          else go(idx - 1, true);
+        }
+        dx = 0;
+      });
+    })();
+
+    // ===================== NAV / SHOW-HIDE =====================
+    const tabs = ["digital","answerkey","trm","worksheet","testpaper","contact","ukg","lkg","nursery"];
+    let currentOpenTab = "home";
+
+    function setActive(id){
+      document.querySelectorAll('.navlinks a').forEach(a=>{
+        a.classList.toggle('active', a.getAttribute('data-tab') === id);
+      });
+      document.querySelectorAll('.drawerItem').forEach(x=>{
+        x.classList.toggle('active', x.getAttribute('data-tab') === id);
+      });
+      currentOpenTab = id;
+    }
+
+    function hideAll(){
+      tabs.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = "none";
+      });
+      stopVideo();
+      setActive("home");
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function showTab(id){
+      tabs.forEach(x=>{
+        const el = document.getElementById(x);
+        if(el) el.style.display = "none";
+      });
+      stopVideo();
+      const target = document.getElementById(id);
+      if(target){
+        target.style.display = "block";
+        setActive(id);
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    }
+
+    function handleTab(tab){
+      try{
+        const sess = getSession();
+        const role = sess?.user?.role || "guest";
+        if((role === "student" || role === "guest") && (tab === "answerkey" || tab === "trm")){
+          toast("Access denied");
+          return;
+        }
+      }catch(e){}
+      if(tab === "home"){ hideAll(); return; }
+      showTab(tab);
+
+      if(tab === "digital") initDigitalUI();
+      if(tab === "answerkey") initSimplePanel("answerkey");
+      if(tab === "trm") initSimplePanel("trm");
+      if(tab === "worksheet") initSimplePanel("worksheet");
+      if(tab === "testpaper") tpInit();
+    }
+
+    document.querySelectorAll('.navlinks a').forEach(a=>{
+      a.addEventListener('click', ()=> handleTab(a.getAttribute('data-tab')));
+    });
+
+    // ===================== Drawer menu build =====================
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const drawer = document.getElementById('drawer');
+    const hamBtn = document.getElementById('hamBtn');
+    const drawerClose = document.getElementById('drawerClose');
+    const drawerList = document.getElementById('drawerList');
+
+    const drawerItems = [
+      {id:"home", label:"Home"},
+      {id:"digital", label:"Digital Content"},
+      {id:"answerkey", label:"Answer Key"},
+      {id:"trm", label:"TRM"},
+      {id:"worksheet", label:"Worksheet"},
+      {id:"testpaper", label:"Test Paper"},
+      {divider:true},
+      {id:"ukg", label:"UKG"},
+      {id:"lkg", label:"LKG"},
+      {id:"nursery", label:"Nursery"},
+      {divider:true},
+      {id:"contact", label:"Contact"},
+    ];
+
+    function drawerOpen(){ drawerOverlay.classList.add('open'); drawer.classList.add('open'); }
+    function drawerHide(){ drawerOverlay.classList.remove('open'); drawer.classList.remove('open'); }
+
+    function buildDrawer(){
+      drawerList.innerHTML = '';
+      drawerItems.forEach(it=>{
+        if(it.divider){
+          const div = document.createElement('div');
+          div.className = 'drawerDivider';
+          drawerList.appendChild(div);
+          return;
+        }
+        const d = document.createElement('div');
+        d.className = 'drawerItem' + (it.id==="home" ? ' active' : '');
+        d.textContent = it.label;
+        d.setAttribute('data-tab', it.id);
+        d.addEventListener('click', ()=>{
+          drawerHide();
+          handleTab(it.id);
+        });
+        drawerList.appendChild(d);
+      });
+    }
+    buildDrawer();
+
+    hamBtn.addEventListener('click', drawerOpen);
+    drawerClose.addEventListener('click', drawerHide);
+    drawerOverlay.addEventListener('click', drawerHide);
+    document.addEventListener('keydown', (e)=>{ if(e.key === "Escape") drawerHide(); });
+
+    // ===================== YouTube embed =====================
+    function buildYouTubeEmbed(url){
+      try{
+        url = (url || '').toString().trim().replace(/\\s+/g,'');
+        const u = new URL(url);
+        let v = u.searchParams.get('v');
+        if(!v && u.hostname.includes("youtu.be")){
+          v = u.pathname.replace("/","").trim();
+        }
+        if(!v) return "";
+        const embed = `https://www.youtube-nocookie.com/embed/${v}`;
+        const params = new URLSearchParams();
+        params.set('rel','0');
+        params.set('modestbranding','1');
+        params.set('autoplay','1');
+        return embed + "?" + params.toString();
+      }catch(e){ return ""; }
+    }
+
+    function stopVideo(){
+      const vb = document.getElementById('videoBox');
+      if(vb) vb.style.display = 'none';
+      const yf = document.getElementById('ytFrame');
+      if(yf) yf.src = '';
+      const oy = document.getElementById('openOnYt');
+      if(oy) oy.href = '#';
+    }
+
+    // ===================== DATA HELPERS FROM BOOTSTRAP =====================
+    function fillSelect(sel, items, placeholder){
+      sel.innerHTML = '';
+      if(placeholder){
+        const opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = placeholder;
+        sel.appendChild(opt);
+      }
+      items.forEach(v=>{
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        sel.appendChild(opt);
+      });
+    }
+
+    function itemsByType(type){
+      type = String(type||"").toLowerCase();
+      return CONTENT_ITEMS.filter(x => String(x.type||"").toLowerCase() === type);
+    }
+
+    function subjectsForType(type){
+      return uniq(itemsByType(type).map(x => x.subject).filter(Boolean));
+    }
+    function classesForType(type, subject){
+      return uniq(itemsByType(type).filter(x => !subject || x.subject === subject).map(x => x.className).filter(Boolean));
+    }
+    function findBestItem(type, subject, className){
+      return itemsByType(type).find(x =>
+        (!subject || x.subject === subject) &&
+        (!className || x.className === className)
+      );
+    }
+
+    // ===================== SIMPLE PANELS (AnswerKey/TRM/Worksheet) =====================
+        // ===================== SIMPLE PANELS (AnswerKey/TRM/Worksheet) =====================
+    // NOTE: These are now "one book = one file". So we use bookTitle dropdown.
+    function initSimplePanel(kind){
+      const type = (kind === "answerkey") ? "answerkey" : (kind === "trm") ? "trm" : "worksheet";
+
+      const subjSel = document.getElementById(kind === "answerkey" ? "akSubject" : kind === "trm" ? "trmSubject" : "wsSubject");
+      const clsSel  = document.getElementById(kind === "answerkey" ? "akClass"   : kind === "trm" ? "trmClass"   : "wsClass");
+      const bookSel = document.getElementById(kind === "answerkey" ? "akBook"    : kind === "trm" ? "trmBook"    : "wsBook");
+      const openBtn = document.getElementById(kind === "answerkey" ? "akOpenBtn"  : kind === "trm" ? "trmOpenBtn"  : "wsOpenBtn");
+
+      function booksForType(type, subject, className){
+        return uniq(itemsByType(type)
+          .filter(x => (!subject || x.subject === subject) && (!className || x.className === className))
+          .map(x => x.bookTitle || x.title || "")
+          .filter(Boolean)
+        );
+      }
+
+      function findBookItem(type, subject, className, bookTitle){
+        const list = itemsByType(type).filter(x =>
+          (!subject || x.subject === subject) &&
+          (!className || x.className === className)
+        );
+        if(bookTitle){
+          const exact = list.find(x => (x.bookTitle || "") === bookTitle);
+          if(exact) return exact;
+        }
+        return list[0] || null;
+      }
+
+      const subs = subjectsForType(type);
+      const firstSub = subs[0] || "";
+      fillSelect(subjSel, subs, subs.length ? "Subject" : "No data");
+      subjSel.value = firstSub;
+
+      const rebuildBooks = ()=>{
+        const books = booksForType(type, subjSel.value, clsSel.value);
+        const firstBook = books[0] || "";
+        fillSelect(bookSel, books, books.length ? "Book" : "No book");
+        bookSel.value = firstBook;
+      };
+
+      const rebuildClasses = ()=>{
+        const classes = classesForType(type, subjSel.value);
+        const firstCls = classes[0] || "";
+        fillSelect(clsSel, classes, classes.length ? "Class" : "No class");
+        clsSel.value = firstCls;
+        rebuildBooks();
+      };
+
+      rebuildClasses();
+      subjSel.onchange = rebuildClasses;
+      clsSel.onchange = rebuildBooks;
+
+      openBtn.onclick = ()=>{
+        const item = findBookItem(type, subjSel.value, clsSel.value, bookSel.value);
+        if(!item?.url){ toast("Link not added yet"); return; }
+        window.open(item.url, "_blank", "noopener");
+      };
+    }
+
+    // ===================== DIGITAL UI (Videos + Activities + Books/Worksheets if you add) ===================== (Videos + Activities + Books/Worksheets if you add) =====================
+    const dcSubject = document.getElementById('dcSubject');
+    const dcClass = document.getElementById('dcClass');
+    const dcChapter = document.getElementById('dcChapter');
+    const dcOpenBtn = document.getElementById('dcOpenBtn');
+    const dcActWrap = document.getElementById('dcActWrap');
+    const dcActBtn = document.getElementById('dcActBtn');
+    const dcActMenu = document.getElementById('dcActMenu');
+
+    let dcCurClass = "";
+    let dcCurSubject = "";
+    let dcCurChapter = "";
+
+    function digitalSubjects(){
+      // videos drive digital dropdowns
+      return uniq(itemsByType("video").map(x => x.subject).filter(Boolean));
+    }
+    function digitalClasses(subject){
+      return uniq(itemsByType("video").filter(x => !subject || x.subject === subject).map(x => x.className).filter(Boolean));
+    }
+    function digitalChapters(subject, className){
+      return uniq(itemsByType("video").filter(x =>
+        (!subject || x.subject === subject) &&
+        (!className || x.className === className)
+      ).map(x => x.chapter).filter(Boolean));
+    }
+    function digitalVideos(subject, className, chapter){
+      return itemsByType("video").filter(x =>
+        (!subject || x.subject === subject) &&
+        (!className || x.className === className) &&
+        (!chapter || x.chapter === chapter)
+      );
+    }
+    function digitalActivities(subject, className, chapter){
+      return itemsByType("activity").filter(x =>
+        (!subject || x.subject === subject) &&
+        (!className || x.className === className) &&
+        (!chapter || x.chapter === chapter)
+      );
+    }
+
+    function updateDigitalActivitiesMenu(){
+      dcActMenu.innerHTML = '';
+      const acts = digitalActivities(dcCurSubject, dcCurClass, dcCurChapter);
+
+      if(!acts.length){
+        dcActMenu.innerHTML = `
+          <div class="act-item" data-none="1">
+            <div>
+              <div>No activity</div>
+              <div class="act-sub">Link not added yet</div>
+            </div>
+            <div style="opacity:.55">×</div>
+          </div>
+        `;
+        dcActBtn.innerHTML = `<span class="dot"></span> Activities`;
+        return;
+      }
+
+      dcActBtn.innerHTML = `<span class="dot"></span> Activities (${acts.length})`;
+
+      acts.forEach((a,i)=>{
+        const div = document.createElement('div');
+        div.className = 'act-item';
+        div.setAttribute('data-url', a.url);
+        div.innerHTML = `
+          <div>
+            <div>${a.title || ('Activity ' + (i+1))}</div>
+            <div class="act-sub">Open</div>
+          </div>
+          <div style="opacity:.75">→</div>
+        `;
+        div.addEventListener('click', ()=>{
+          dcActWrap.classList.remove('open');
+          window.open(a.url, "_blank", "noopener");
+        });
+        dcActMenu.appendChild(div);
+        if(i !== acts.length-1){
+          const line = document.createElement('div');
+          line.className = 'act-line';
+          dcActMenu.appendChild(line);
+        }
+      });
+    }
+
+    function initDigitalUI(){
+      const subs = digitalSubjects();
+      fillSelect(dcSubject, subs, subs.length ? "1. Subject" : "No videos");
+      dcCurSubject = subs[0] || "";
+      dcSubject.value = dcCurSubject;
+
+      const cls = digitalClasses(dcCurSubject);
+      fillSelect(dcClass, cls, cls.length ? "2. Class" : "No class");
+      dcCurClass = cls[0] || "";
+      dcClass.value = dcCurClass;
+
+      const chs = digitalChapters(dcCurSubject, dcCurClass);
+      fillSelect(dcChapter, chs, chs.length ? "3. Chapter" : "No chapter");
+      dcCurChapter = chs[0] || "";
+      dcChapter.value = dcCurChapter;
+
+      updateDigitalActivitiesMenu();
+      document.getElementById('videosWrap').style.display = 'none';
+      stopVideo();
+
+      dcSubject.onchange = ()=>{
+        dcCurSubject = dcSubject.value || "";
+        const cls2 = digitalClasses(dcCurSubject);
+        fillSelect(dcClass, cls2, cls2.length ? "2. Class" : "No class");
+        dcCurClass = cls2[0] || "";
+        dcClass.value = dcCurClass;
+
+        const chs2 = digitalChapters(dcCurSubject, dcCurClass);
+        fillSelect(dcChapter, chs2, chs2.length ? "3. Chapter" : "No chapter");
+        dcCurChapter = chs2[0] || "";
+        dcChapter.value = dcCurChapter;
+
+        updateDigitalActivitiesMenu();
+        document.getElementById('videosWrap').style.display = 'none';
+        stopVideo();
+      };
+
+      dcClass.onchange = ()=>{
+        dcCurClass = dcClass.value || "";
+        const chs2 = digitalChapters(dcCurSubject, dcCurClass);
+        fillSelect(dcChapter, chs2, chs2.length ? "3. Chapter" : "No chapter");
+        dcCurChapter = chs2[0] || "";
+        dcChapter.value = dcCurChapter;
+
+        updateDigitalActivitiesMenu();
+        document.getElementById('videosWrap').style.display = 'none';
+        stopVideo();
+      };
+
+      dcChapter.onchange = ()=>{
+        dcCurChapter = dcChapter.value || "";
+        updateDigitalActivitiesMenu();
+        document.getElementById('videosWrap').style.display = 'none';
+        stopVideo();
+      };
+
+      dcOpenBtn.onclick = ()=>{
+        if(!dcCurSubject || !dcCurClass || !dcCurChapter){
+          toast("Select Subject, Class, Chapter");
+          return;
+        }
+        openVideos(dcCurSubject, dcCurClass, dcCurChapter);
+      };
+
+      dcActWrap.addEventListener('click', (e)=> e.stopPropagation());
+      dcActBtn.onclick = (e)=>{
+        e.stopPropagation();
+        document.querySelectorAll('.act-dd.open').forEach(x=>{ if(x!==dcActWrap) x.classList.remove('open'); });
+        dcActWrap.classList.toggle('open');
+      };
+      dcActMenu.onclick = (e)=>{
+        const none = e.target.closest('[data-none="1"]');
+        if(none){
+          dcActWrap.classList.remove('open');
+          toast("Activity link not added yet");
+        }
+      };
+
+      document.getElementById('chapBackBtn').onclick = ()=>{
+        document.getElementById('videosWrap').style.display = 'none';
+        stopVideo();
+      };
+    }
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.act-dd.open').forEach(x => x.classList.remove('open'));
+    });
+
+    function openVideos(subject, className, chapter){
+      const videosWrap = document.getElementById('videosWrap');
+      const videoListTitle = document.getElementById('videoListTitle');
+      const videoList = document.getElementById('videoList');
+
+      videosWrap.style.display = 'block';
+      stopVideo();
+
+      const vids = digitalVideos(subject, className, chapter);
+
+      videoListTitle.textContent = `${subject} • ${chapter} — ${className}`;
+      videoList.innerHTML = '';
+
+      if(!vids.length){
+        videoList.innerHTML = `<div class="card" style="background: rgba(241,245,255,.75);border:1px solid var(--border);border-radius: 20px;padding: 16px;"><h4>No Videos</h4><p style="margin-top:8px;color: rgba(15,23,42,.62);font-size:13.5px;line-height:1.75">Is chapter me videos add nahi hai.</p></div>`;
+      }else{
+        vids.forEach((v,i)=>{
+          const row = document.createElement('div');
+          row.style.cssText = "background: rgba(241,245,255,.70);border:1px solid var(--border);border-radius: 16px;padding: 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;";
+          row.innerHTML = `
+            <div>
+              <div style="font-weight:900; font-size:13.5px;">${v.title || ('Video ' + (i+1))}</div>
+              <div style="color: rgba(15,23,42,.60); font-size:12.5px; margin-top:4px;">${(v.url||'').includes('youtube') || (v.url||'').includes('youtu.be') ? 'YouTube' : 'Open Link'}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+              <button class="pillbtn primary"><span class="dot"></span> Play</button>
+            </div>
+          `;
+          row.querySelector('button').addEventListener('click', ()=>{
+            const u = v.url;
+            const embed = buildYouTubeEmbed(u);
+            if(!embed){
+              window.open(u, '_blank', 'noopener');
+              return;
+            }
+            document.getElementById('openOnYt').href = u;
+            document.getElementById('ytFrame').src = embed;
+            document.getElementById('videoTitle').textContent = `${subject} • ${chapter} — ${v.title || ('Video ' + (i+1))}`;
+            document.getElementById('videoBox').style.display = 'block';
+            document.getElementById('videoBox').scrollIntoView({behavior:'smooth', block:'start'});
+          });
+          videoList.appendChild(row);
+        });
+      }
+      videosWrap.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    // ===================== TEST PAPER DB (unchanged demo) =====================
+    const TP_DB = {
+      "Class 1": {
+        "General Knowledge": [
+          {
+            chapter: "The World of Animals",
+            questions: [
+              { id:"a1", type:"MCQ", q:"Which animal is known as the king of the jungle?", opts:["Elephant","Lion","Zebra","Giraffe"], ans:"Lion", marks:1 },
+              { id:"a2", type:"MCQ", q:"Which animal has a long trunk?", opts:["Bear","Lion","Elephant","Zebra"], ans:"Elephant", marks:1 },
+              { id:"a3", type:"TF", q:"A giraffe has a long neck.", ans:"True", marks:1 },
+              { id:"a4", type:"TF", q:"Zebras have plain brown skin.", ans:"False", marks:1 },
+              { id:"a5", type:"Fill", q:"The largest land animal is the __________.", ans:"Elephant", marks:1 },
+              { id:"a6", type:"Fill", q:"The animal with black and white stripes is called a __________.", ans:"Zebra", marks:1 },
+              { id:"a7", type:"Short", q:"Name any two wild animals.", ans:"Lion and Elephant", marks:2 },
+              { id:"a8", type:"Long", q:"Write a few sentences about the elephant.", ans:"The elephant is the largest land animal. It has a long trunk and big ears. Elephants eat grass, leaves, and fruits. They need a lot of water every day and are very strong animals.", marks:4 }
+            ]
+          }
+        ],
+        "Hindi Reader": []
+      },
+      "Class 2": { "General Knowledge": [], "Hindi Reader": [], "English Reader": [] },
+      "Class 3": { "General Knowledge": [], "Hindi Reader": [], "English Reader": [] },
+      "Class 4": { "General Knowledge": [] },
+      "Class 5": { "General Knowledge": [] },
+      "Class 6": { "General Knowledge": [] },
+      "Class 7": { "General Knowledge": [] },
+      "Class 8": { "General Knowledge": [] }
+    };
+
+    let tpSelected = [];
+    let tpCurrentChapterObj = null;
+
+    function tpInit(){
+      const classSel = document.getElementById('tpClassSel');
+      const subSel = document.getElementById('tpSubSel');
+
+      const classes = Object.keys(TP_DB);
+      classSel.innerHTML = classes.map(c=>`<option>${c}</option>`).join('');
+
+      const loadSubjects = ()=>{
+        const c = classSel.value;
+        const subjects = Object.keys((TP_DB[c] || {}));
+        subSel.innerHTML = subjects.map(s=>`<option>${s}</option>`).join('');
+        document.getElementById('tpPaperSubject').textContent = subSel.value || "Subject";
+        tpLoadChapters();
+      };
+
+      classSel.onchange = loadSubjects;
+      subSel.onchange = ()=>{ document.getElementById('tpPaperSubject').textContent = subSel.value || "Subject"; tpLoadChapters(); };
+
+      document.getElementById('tpPreset').onchange = ()=>{
+        document.getElementById('tpRange').value = document.getElementById('tpPreset').value;
+      };
+
+      loadSubjects();
+      tpClear();
+      tpTeacherOff();
+      // Full-book test paper (DOCX/PDF) from Excel
+      const fullBtn = document.getElementById('tpFullPaperBtn');
+      if(fullBtn){ fullBtn.onclick = tpOpenFullBookTestPaper; }
+      tpUpdateFullBtnVisibility();
+    }
+
+    function tpTeacherOff(){
+      document.body.classList.remove('teacher-mode');
+      document.getElementById('tpTeacherBtn').textContent = "TEACHER MODE: OFF";
+    }
+
+    function tpToggleTeacher(){
+      document.body.classList.toggle('teacher-mode');
+      const on = document.body.classList.contains('teacher-mode');
+      document.getElementById('tpTeacherBtn').textContent = on ? "TEACHER MODE: ON" : "TEACHER MODE: OFF";
+    }
+
+    
+    // Full-book Test Paper open (Teacher/Admin only) - type: testpaper
+    function tpUpdateFullBtnVisibility(){
+      const btn = document.getElementById("tpFullPaperBtn");
+      if(!btn) return;
+      const role = (getSession()?.user?.role || "guest");
+      btn.style.display = (role === "teacher" || role === "admin") ? "" : "none";
+    }
+
+    function tpOpenFullBookTestPaper(){
+      const role = (getSession()?.user?.role || "guest");
+      if(!(role === "teacher" || role === "admin")){
+        toast("Teacher/Admin only");
+        return;
+      }
+
+      const className = document.getElementById("tpClassSel")?.value || "";
+      const subject = document.getElementById("tpSubSel")?.value || "";
+
+      const item = itemsByType("testpaper").find(x =>
+        (!subject || x.subject === subject) &&
+        (!className || x.className === className)
+      );
+
+      if(!item?.url){
+        toast("Full book testpaper link not added yet");
+        return;
+      }
+      window.open(item.url, "_blank", "noopener");
+    }
+
+function tpGetScope(){
+      const c = document.getElementById('tpClassSel').value;
+      const s = document.getElementById('tpSubSel').value;
+      const chapters = ((TP_DB[c]||{})[s] || []);
+      return {c,s,chapters};
+    }
+
+    function tpLoadChapters(){
+      const wrap = document.getElementById('tpChapters');
+      wrap.innerHTML = '';
+      const {chapters} = tpGetScope();
+
+      if(!chapters.length){
+        wrap.innerHTML = `<div class="tp-item"><b>No chapters</b><div class="sub">Data not added yet</div></div>`;
+        document.getElementById('tpBank').innerHTML = '';
+        document.getElementById('tpBankTitle').textContent = `Pick Questions`;
+        tpCurrentChapterObj = null;
+        return;
+      }
+
+      chapters.forEach((ch, idx)=>{
+        const div = document.createElement('div');
+        div.className = 'tp-item';
+        div.innerHTML = `<b>${idx+1}. ${ch.chapter}</b><div class="sub">${(ch.questions||[]).length} questions</div>`;
+        div.onclick = ()=> {
+          tpCurrentChapterObj = ch;
+          document.querySelectorAll('#tpChapters .tp-item').forEach(x=> x.style.outline='none');
+          div.style.outline = "2px solid rgba(29,78,216,.35)";
+          tpRenderBank();
+        };
+        wrap.appendChild(div);
+      });
+
+      tpCurrentChapterObj = chapters[0];
+      tpRenderBank();
+    }
+
+    function tpRenderBank(){
+      const bank = document.getElementById('tpBank');
+      bank.innerHTML = '';
+
+      if(!tpCurrentChapterObj){
+        document.getElementById('tpBankTitle').textContent = `Pick Questions`;
+        return;
+      }
+
+      document.getElementById('tpBankTitle').textContent = `Pick Questions • ${tpCurrentChapterObj.chapter}`;
+
+      (tpCurrentChapterObj.questions||[]).forEach(q=>{
+        const d = document.createElement('div');
+        d.className = 'tp-item';
+        d.innerHTML = `<b>${q.type}</b>: ${q.q}<div class="sub">Marks: ${q.marks} • Click to add</div>`;
+        d.onclick = ()=>{
+          if(!tpSelected.find(x=>x.id===q.id)){
+            tpSelected.push({...q});
+            tpRenderPaper();
+          }
+        };
+        bank.appendChild(d);
+      });
+    }
+
+    function tpRecalcTotal(){
+      let total = 0;
+      tpSelected.forEach(q => total += (parseInt(q.marks, 10) || 0));
+      document.getElementById('tpTotal').textContent = total;
+    }
+
+    function tpRenderPaper(){
+      const body = document.getElementById('tpPaperBody');
+      body.innerHTML = '';
+      let count = 1;
+      const order = ["MCQ","TF","Fill","Short","Long"];
+
+      order.forEach(sec=>{
+        const qs = tpSelected.filter(x=>x.type===sec);
+        if(!qs.length) return;
+
+        const secDiv = document.createElement('div');
+        secDiv.innerHTML = `<div class="tp-sec-head">SECTION: ${sec}</div>`;
+
+        qs.forEach(item=>{
+          const qIdx = tpSelected.indexOf(item);
+          const qDiv = document.createElement('div');
+          qDiv.className = 'tp-q';
+          qDiv.innerHTML = `
+            <div class="tp-del" title="Remove">×</div>
+            <div style="display:flex; justify-content:space-between; gap:10px;">
+              <div style="flex:1">
+                <b>${count++}.</b> ${item.q}
+                ${item.type==='TF' ? `<span class="tp-inline-box"></span>` : ``}
+              </div>
+              <div style="min-width:92px; text-align:right;">
+                [ <input type="number" class="tp-marks-input" value="${parseInt(item.marks,10) || 0}" min="0" step="1" /> ]
+              </div>
+            </div>
+            ${item.type==='MCQ'
+              ? `<div class="tp-opts">${item.opts.map((o,i)=>`<div>${String.fromCharCode(97+i)}) ${o} <span class="tp-inline-box"></span></div>`).join('')}</div>`
+              : ``}
+            <div class="tp-ans">✅ Ans: ${item.ans}</div>
+          `;
+
+          qDiv.querySelector('.tp-del').addEventListener('click', ()=>{
+            tpSelected.splice(qIdx, 1);
+            tpRenderPaper();
+          });
+
+          qDiv.querySelector('.tp-marks-input').addEventListener('input', (e)=>{
+            let v = parseInt(e.target.value, 10);
+            if(isNaN(v)) v = 0;
+            e.target.value = v;
+            tpSelected[qIdx].marks = v;
+            tpRecalcTotal();
+          });
+
+          secDiv.appendChild(qDiv);
+        });
+
+        body.appendChild(secDiv);
+      });
+
+      tpRecalcTotal();
+      try{ new Sortable(body, { animation: 150 }); }catch(e){}
+    }
+
+    function tpClear(){ tpSelected = []; tpRenderPaper(); }
+
+    function tpGenerateFromRange(){
+      const r = (document.getElementById('tpRange').value || "").trim();
+      if(!r) return;
+
+      const {chapters} = tpGetScope();
+      const parts = r.split('-').map(x=>parseInt(x,10));
+      const s = (parts[0]||1)-1;
+      const e = (parts[1]||parts[0]||1)-1;
+
+      for(let i=s;i<=e;i++){
+        const ch = chapters[i];
+        if(!ch) continue;
+        (ch.questions||[]).forEach(q=>{
+          if(!tpSelected.find(x=>x.id===q.id)) tpSelected.push({...q});
+        });
+      }
+      tpRenderPaper();
+    }
+
+    function tpBuildExportClone(){
+      const paper = document.getElementById('tpPaper');
+      const clone = paper.cloneNode(true);
+
+      clone.querySelectorAll('.tp-del, .tp-ans').forEach(el => el.remove());
+
+      clone.querySelectorAll('input.tp-marks-input').forEach(inp=>{
+        const v = parseInt(inp.value,10);
+        const span = document.createElement('span');
+        span.style.fontWeight = '900';
+        span.textContent = isNaN(v) ? '0' : String(v);
+        inp.replaceWith(span);
+      });
+
+      clone.style.width = '210mm';
+      clone.style.margin = '0';
+      clone.style.boxShadow = 'none';
+      clone.style.borderRadius = '0';
+      return clone;
+    }
+
+    async function tpSavePDF(){
+      const btn = document.getElementById('tpPdfBtn');
+      const old = btn.textContent;
+      btn.textContent = "...";
+
+      const wasTeacher = document.body.classList.contains('teacher-mode');
+      document.body.classList.remove('teacher-mode');
+
+      let holder = null;
+
+      try{
+        const clone = tpBuildExportClone();
+
+        holder = document.createElement('div');
+        holder.style.position = 'fixed';
+        holder.style.left = '-99999px';
+        holder.style.top = '0';
+        holder.style.width = '210mm';
+        holder.style.background = '#ffffff';
+        holder.style.zIndex = '999999';
+        holder.appendChild(clone);
+        document.body.appendChild(holder);
+
+        const canvas = await html2canvas(clone, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff"
+        });
+
+        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        const pageW = 210;
+        const pageH = 297;
+
+        const imgW = pageW;
+        const pagePxH = Math.floor(canvas.width * (pageH / pageW));
+        let renderedPages = 0;
+
+        while(renderedPages * pagePxH < canvas.height){
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.min(pagePxH, canvas.height - renderedPages * pagePxH);
+
+          const pageCtx = pageCanvas.getContext('2d');
+          pageCtx.fillStyle = "#ffffff";
+          pageCtx.fillRect(0,0,pageCanvas.width,pageCanvas.height);
+
+          pageCtx.drawImage(
+            canvas,
+            0, renderedPages * pagePxH, canvas.width, pageCanvas.height,
+            0, 0, canvas.width, pageCanvas.height
+          );
+
+          const pageData = pageCanvas.toDataURL('image/jpeg', 1.0);
+          if(renderedPages > 0) pdf.addPage();
+
+          const pageImgH = (pageCanvas.height * imgW) / pageCanvas.width;
+          pdf.addImage(pageData, 'JPEG', 0, 0, imgW, pageImgH);
+
+          renderedPages++;
+        }
+
+        pdf.save("Exam_Paper.pdf");
+      } finally {
+        if(holder) holder.remove();
+        if(wasTeacher) document.body.classList.add('teacher-mode');
+        btn.textContent = old;
+      }
+    }
+
+    function tpSaveWord(){
+      const s = document.getElementById('tpSubSel').value;
+
+      const order = ["MCQ","TF","Fill","Short","Long"];
+      let count = 1;
+
+      const school = (document.querySelector('#tpPaper h1')?.textContent || "SCHOOL").trim();
+      const exam = (document.querySelector('#tpPaper p')?.textContent || "EXAM").trim();
+      const maxMarks = (document.getElementById('tpTotal')?.textContent || "0").trim();
+      const timeTxt = (document.querySelector('.tp-meta-line span:nth-child(2)')?.textContent || "Time").replace("Time:","").trim();
+
+      let html = `
+        <div style="font-family:Arial; color:#000;">
+          <div style="border:2px solid #000; padding:12px; text-align:center;">
+            <div style="font-size:22px; font-weight:700;">${school}</div>
+            <div style="font-size:14px; font-weight:700; margin-top:6px;">${exam}</div>
+            <div style="border-top:2px solid #000; margin-top:10px; padding-top:10px; font-size:13px; font-weight:700; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <div>Subject: ${s}</div>
+              <div>Time: ${timeTxt || "2 Hours"}</div>
+              <div>Max Marks: ${maxMarks}</div>
+            </div>
+          </div>
+      `;
+
+      order.forEach(sec=>{
+        const qs = tpSelected.filter(x=>x.type===sec);
+        if(!qs.length) return;
+
+        html += `<div style="margin-top:18px; padding:10px; border:1px solid #000; font-weight:700; background:#f3f4f6;">SECTION: ${sec}</div>`;
+
+        qs.forEach(item=>{
+          const marks = parseInt(item.marks,10) || 0;
+          html += `
+            <div style="margin-top:10px; border-bottom:1px solid #ddd; padding-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; gap:10px;">
+                <div style="flex:1; font-size:14px;">
+                  <b>${count++}.</b> ${item.q} ${item.type==="TF" ? " ☐" : ""}
+                </div>
+                <div style="min-width:90px; text-align:right; font-weight:700;">[ ${marks} ]</div>
+              </div>
+          `;
+
+          if(item.type==="MCQ" && Array.isArray(item.opts)){
+            html += `<div style="margin-left:18px; margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; font-size:13px;">`;
+            item.opts.forEach((o,i)=>{
+              const letter = String.fromCharCode(97+i);
+              html += `<div>${letter}) ${o} ☐</div>`;
+            });
+            html += `</div>`;
+          }
+
+          html += `</div>`;
+        });
+      });
+
+      html += `</div>`;
+
+      const header = "<html><head><meta charset='utf-8'></head><body>";
+      const blob = new Blob(['\\ufeff', header + html + "</body></html>"], { type: 'application/msword' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Exam_Paper.doc';
+      link.click();
+    }
+
+    // ===================== LOGIN UI =====================
+    function setLoginButtons(role){
+      const t = document.getElementById("btnTeacher");
+      const s = document.getElementById("btnStudent");
+      const l = document.getElementById("btnLogout");
+
+      const isGuest = role === "guest";
+      const isStudent = role === "student";
+
+      if(t) t.style.display = isGuest ? "" : "";
+      if(s) s.style.display = isGuest ? "" : "none";
+      if(l) l.style.display = isGuest ? "none" : "";
+
+      if(isStudent && t) t.style.display = "none";
+    }
+
+    let LOGIN_MODE = "teacher";
+
+    function openLogin(mode){
+      mode = (mode || "teacher").toString();
+      try{
+        const sess = getSession();
+        const role = sess?.user?.role || "guest";
+        if(role === "student" && mode === "teacher"){
+          toast("Not allowed");
+          return;
+        }
+      }catch(e){}
+
+      LOGIN_MODE = (mode === "student") ? "student" : "teacher";
+
+      const title = document.getElementById("loginTitle");
+      const idInput = document.getElementById("lgIdentifier");
+      const rollInput = document.getElementById("lgRoll");
+      const passInput = document.getElementById("lgPassword");
+      const msg = document.getElementById("lgMsg");
+
+      if(msg) msg.textContent = "";
+      if(passInput) passInput.value = "";
+
+      if(LOGIN_MODE === "student"){
+        if(title) title.textContent = "Student Login";
+        if(idInput) idInput.style.display = "none";
+        if(rollInput) rollInput.style.display = "block";
+      }else{
+        if(title) title.textContent = "Teacher Login";
+        if(idInput){
+          idInput.style.display = "block";
+          idInput.placeholder = "Email/Phone (Teacher)";
+        }
+        if(rollInput) rollInput.style.display = "none";
+      }
+
+      const forceWrap = document.getElementById("forceChangeWrap");
+      if(forceWrap) forceWrap.style.display = "none";
+
+      document.getElementById("loginModal").style.display = "block";
+    }
+
+    function closeLogin(){
+      document.getElementById("loginModal").style.display = "none";
+    }
+
+    async function doLogin(){
+      const msg = document.getElementById("lgMsg");
+      if(msg){
+        msg.style.color = "#ef4444";
+        msg.textContent = "";
+      }
+
+      const password = (document.getElementById("lgPassword").value || "").trim();
+      const identifier = (document.getElementById("lgIdentifier").value || "").trim();
+      const roll = (document.getElementById("lgRoll").value || "").trim();
+
+      if(!password) { if(msg) msg.textContent = "Password required"; return; }
+      if(LOGIN_MODE === "teacher" && !identifier) { if(msg) msg.textContent = "Email/Phone required"; return; }
+      if(LOGIN_MODE === "student" && !roll) { if(msg) msg.textContent = "Roll No required"; return; }
+
+      const payload = {
+        schoolId: "SCH001",
+        identifier: (LOGIN_MODE === "student") ? roll : identifier,
+        password,
+        expectedRole: LOGIN_MODE,
+        deviceId: getDeviceId()
+      };
+
+      try{
+        const r = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload)
+        });
+
+        const data = await r.json().catch(()=> ({}));
+        if(!r.ok || !data.ok){
+          if(msg) msg.textContent = data.message || "Login failed";
+          return;
+        }
+
+        setSession({
+          token: data.token,
+          user: data.user,
+          school: data.school,
+          firstLogin: !!data.firstLogin
+        });
+
+        await loadBootstrap(); // refresh content for role
+        toast("Login success");
+
+        if(data.firstLogin){
+          const fw = document.getElementById("forceChangeWrap");
+          if(fw) fw.style.display = "block";
+          if(msg){
+            msg.style.color = "#0f172a";
+            msg.textContent = "First login: please set new password.";
+          }
+          return;
+        }
+
+        closeLogin();
+        applyRoleUI();
+      }catch(e){
+        if(msg) msg.textContent = "Network error. Server running?";
+      }
+    }
+
+    async function changeStudentPassword(){
+      const msg = document.getElementById("lgMsg");
+      if(msg){
+        msg.style.color = "#ef4444";
+        msg.textContent = "";
+      }
+
+      const newPass = (document.getElementById("lgNewPass").value || "").trim();
+      if(newPass.length < 6){ if(msg) msg.textContent = "New password must be 6+ chars"; return; }
+
+      const sess = getSession();
+      if(!sess || !sess.token){ if(msg) msg.textContent = "Please login first."; return; }
+
+      try{
+        const r = await apiFetch("/api/auth/change-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ newPassword: newPass })
+        });
+
+        const data = await r.json().catch(()=> ({}));
+        if(!r.ok || !data.ok){
+          if(msg) msg.textContent = data.message || "Password update failed";
+          return;
+        }
+
+        toast("Password updated");
+        sess.firstLogin = false;
+        setSession(sess);
+
+        const fw = document.getElementById("forceChangeWrap");
+        if(fw) fw.style.display = "none";
+
+        closeLogin();
+        applyRoleUI();
+      }catch(e){
+        if(msg) msg.textContent = "Network error.";
+      }
+    }
+
+    async function logout(){
+      try{ await fetch("/api/auth/logout", { method:"POST", credentials:"include" }); }catch(e){}
+      clearSession();
+      await loadBootstrap();
+      toast("Logged out");
+      applyRoleUI();
+    }
+
+    function applyRoleUI(){
+      const sess = getSession();
+      const role = sess?.user?.role || "guest";
+
+      if(role === "teacher" || role === "admin"){
+        document.body.classList.add("teacher-mode");
+        const b = document.getElementById("tpTeacherBtn");
+        if(b) b.textContent = "TEACHER MODE: ON";
+      }else{
+        document.body.classList.remove("teacher-mode");
+        const b = document.getElementById("tpTeacherBtn");
+        if(b) b.textContent = "TEACHER MODE: OFF";
+      }
+
+      const deny = (role === "student" || role === "guest");
+      document.querySelectorAll('.navlinks a[data-tab="answerkey"], .navlinks a[data-tab="trm"]').forEach(el=>{
+        el.style.display = deny ? "none" : "";
+      });
+      document.querySelectorAll('.drawerItem[data-tab="answerkey"], .drawerItem[data-tab="trm"]').forEach(el=>{
+        el.style.display = deny ? "none" : "";
+      });
+
+      setLoginButtons(role);
+      tpUpdateFullBtnVisibility();
+    }
+
+    // ===================== BOOT ON LOAD =====================
+    document.addEventListener("DOMContentLoaded", async ()=>{
+      await loadBootstrap();
+      applyRoleUI();
+      hideAll();
+    });
+  </script>
+
+  <!-- Floating auth buttons -->
+  <div class="auth-fab" id="authFab">
+    <button class="btn primary small" id="btnTeacher" onclick="openLogin('teacher')">Teacher Login</button>
+    <button class="btn ghost small" id="btnStudent" onclick="openLogin('student')">Student Login</button>
+    <button class="btn ghost small" id="btnLogout" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Login modal -->
+  <div id="loginModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:999999;backdrop-filter:blur(6px);">
+    <div style="max-width:420px;margin:8vh auto;background:#fff;border:1px solid rgba(15,23,42,.12);border-radius:18px;padding:16px;box-shadow:0 18px 60px rgba(2,6,23,.18);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div style="font-weight:950" id="loginTitle">Login</div>
+        <button class="btn ghost small" onclick="closeLogin()">Close</button>
+      </div>
+
+      <div style="margin-top:12px;display:grid;gap:10px;">
+        <input id="lgIdentifier" class="tp-input" placeholder="Email/Phone (Teacher)" />
+        <input id="lgRoll" class="tp-input" placeholder="Roll No (Student)" style="display:none;" />
+        <input id="lgPassword" class="tp-input" placeholder="Password" type="password" />
+        <button class="btn primary" onclick="doLogin()">Login</button>
+
+        <div id="forceChangeWrap" style="display:none;border-top:1px solid rgba(15,23,42,.12);padding-top:10px;margin-top:6px;">
+          <div style="font-weight:900;margin-bottom:6px;">Set New Password (first login)</div>
+          <input id="lgNewPass" class="tp-input" placeholder="New Password (min 6 chars)" type="password" />
+          <button class="btn primary small" onclick="changeStudentPassword()">Update Password</button>
+        </div>
+
+        <div id="lgMsg" style="color:#ef4444;font-weight:800;font-size:12.5px;"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
